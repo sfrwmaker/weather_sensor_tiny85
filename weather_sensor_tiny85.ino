@@ -1,9 +1,7 @@
-/* Humidity/Temperature sensor si7021@atmega328p-pu chip running at 1 MGz powered by the two AA batteries
- * Emulates Oregon V2.1 protocol to send the data
- * The voltage regulator ams1117-adj, supplies constant 1.24 volts to battPIN pin when is powered up through the powerPIN
- * The higher the value read on battPIN the lower the battery.
- * arduine reads 380 at 3.3 volts on battery, and 569 at 2.22 volts on the battery
-*/
+/* Humidity/Temperature sensor si7021@attiny85 chip running at 1 MGz powered by the two AA batteries.
+ * Emulates Oregon V2.1 protocol to send the data.
+ * You may need to change sensor_ID parameter.
+ */
 
 #include <avr/sleep.h>
 #include <avr/power.h>
@@ -12,8 +10,8 @@
 #include <USI_TWI_Master.h>
 #include <SI7021.h>
 
+const byte sensor_ID = 0xAB;                          // Uniq ID of the sensor
 const byte transPIN = 1;                              // Pin for the radio transmitter
-const byte battPIN  = 3;                              // A3, Pin to read battery level
 const byte ledPIN   = 4;                              // The test led pid
 const uint16_t low_battery = 2100;                    // The limit for low battery (2.1 mV)
 
@@ -200,7 +198,7 @@ void OregonSensor::sendTempHumidity(int temp, byte humm, bool battery) {  // tem
 //================================ End of the class definitions ==================================================
 
 SI7021 sensor;
-OregonSensor os(transPIN, 0x20, 0xAA, true);
+OregonSensor os(transPIN, 0x20, sensor_ID, true);
 
 void enterSleep(void) {
   ADCSRA &= ~(1<<ADEN);                               // disable ADC
@@ -246,7 +244,6 @@ uint32_t readVcc() {                                  // Vcc in millivolts
 volatile byte f_wdt = 1;
  
  void setup() {
-  pinMode(battPIN,  INPUT);
   pinMode(ledPIN, OUTPUT);
   digitalWrite(ledPIN, LOW);                          // Switch off the led
   os.init();
@@ -302,5 +299,3 @@ volatile byte f_wdt = 1;
 ISR(WDT_vect) {
   if (f_wdt == 0) f_wdt = 1;
 }
-
-
